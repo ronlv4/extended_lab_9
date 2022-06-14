@@ -59,6 +59,8 @@ _start:
 	mov	ebp, esp
 	sub	esp, STK_RES            ; Set up ebp and reserve space on the stack for local storage
 	;CODE START
+	open FileName, O_RDONLY, 0644
+	
 	
 
 
