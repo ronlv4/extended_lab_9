@@ -1,10 +1,10 @@
-all: virus
+all: clean skel
 
-obj/skeleton2.o: src/skeleton2.s
-	nasm -f elf32 src/skeleton2.s -o obj/skeleton2.o
+obj/skel.o: src/skel.s
+	nasm -f elf32 -g src/skel.s -o obj/skel.o
 
-virus: obj/skeleton2.o
-	ld -m elf_i386 obj/skeleton2.o -o bin/virus
+skel: obj/skel.o
+	ld -m elf_i386 obj/skel.o -o bin/virus
 
 .PHONY: clean
 clean:
